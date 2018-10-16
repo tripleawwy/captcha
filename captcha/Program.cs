@@ -152,15 +152,22 @@ namespace captcha
             string hallo, hallo2;
 
             process = Process.GetProcessesByName(program)[0];
+            
 
             do
             {
 
                 ShowWindow(process.MainWindowHandle, SW_RESTORE);
                 Thread.Sleep(200);
-                SetForegroundWindow(process.MainWindowHandle);
+                SetForegroundWindow(process.MainWindowHandle);                
 
                 GetWindowRect(process.MainWindowHandle, out activeWindow);
+                
+                // if windowstate == normal
+
+                // if activeWindow.Right - activeWindow.Left < 500  || activeWindow.Bottom - activeWindow.Top > 410 
+
+
 
                 MoveWindow(process.MainWindowHandle, 100, 100, activeWindow.Right - activeWindow.Left, activeWindow.Bottom - activeWindow.Top, true);
                 //MoveWindow(process.MainWindowHandle, 0, 0, 700, 390, true);
