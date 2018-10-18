@@ -12,188 +12,19 @@ using IronOcr;
 using IronOcr.Languages;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace captcha
 {
 
-
     class Program
     {
-        public class ScreenCapture
-        {
-            [DllImport("user32.dll")]
-            private static extern IntPtr GetForegroundWindow();
-
-            [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
-            public static extern IntPtr GetDesktopWindow();
-
-            [StructLayout(LayoutKind.Sequential)]
-            private struct Rect
-            {
-                public int Left;
-                public int Top;
-                public int Right;
-                public int Bottom;
-            }
-
-            [DllImport("user32.dll")]
-            private static extern IntPtr GetWindowRect(IntPtr hWnd, ref Rect rect);
-
-            public static Image CaptureDesktop()
-            {
-                return CaptureWindow(GetDesktopWindow());
-            }
-
-            public static Bitmap CaptureActiveWindow()
-            {
-                return CaptureWindow(GetForegroundWindow());
-            }
-
-            public static Bitmap CaptureWindow(IntPtr handle)
-            {
-                var rect = new Rect();
-                GetWindowRect(handle, ref rect);
-                var bounds = new Rectangle(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
-                var result = new Bitmap(bounds.Width, bounds.Height);
-
-                using (var graphics = Graphics.FromImage(result))
-                {
-                    graphics.CopyFromScreen(new Point(bounds.Left, bounds.Top), Point.Empty, bounds.Size);
-                }
-
-                return result;
-            }
-        }
-
-        [DllImport("user32.dll")]
-        static extern bool SetForegroundWindow(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
-
-        [DllImport("user32.dll")]
-        private static extern int ShowWindow(IntPtr hWnd, uint Msg);
-        //showwindow
-        private const uint SW_RESTORE = 0x09;
-        private const uint SW_FORCEMINIMIZE = 0x11;
-        private const uint SW_SHOWMAXIMIZED = 0x03;
-        private const uint SW_SHOWNORMAL = 0x01;
-        private const uint SW_SHOWDEFAULT = 0x10;
-        private const uint SW_MINIMIZE = 0x06;
-        private const uint SW_HIDE = 0x00;
-        private const uint SW_SHOWMINIMIZED = 0x02;
-
-
-
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
-        public static extern IntPtr SetFocus(HandleRef hWnd);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
-        //struct für GetWindowRect
-        [StructLayout(LayoutKind.Sequential)]
-        public struct RECT
-        {
-            public int Left;        // x position of upper-left corner  
-            public int Top;         // y position of upper-left corner  
-            public int Right;       // x position of lower-right corner  
-            public int Bottom;      // y position of lower-right corner  
-        }
-
-        [DllImport("user32", EntryPoint = "mouse_event")]
-        private static extern void mouse_event(uint dwFlags, int dx, int dy, int dwData, IntPtr dwExtraInfo);
-        //members
-        private const uint MouseMove = 0x0001;
-        private const uint MouseEventLeftDown = 0x0002;
-        private const uint MouseEventLeftUp = 0x0004;
-        private const uint ARSCH = 0x8000;
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll")]
-        static extern IntPtr GetActiveWindow();
-
-        [DllImport("User32.Dll")]
-        public static extern long SetCursorPos(int x, int y);
-        
-        [DllImport("user32.dll", EntryPoint = "GetWindowInfo", SetLastError = true)]
-        public static extern bool GetWindowInfo(IntPtr hwnd, ref WINDOWINFO windowInfo);
-        /* WINDOWINFO */
-        [StructLayout(LayoutKind.Sequential)]
-        public struct WINDOWINFO
-        {
-            public uint cbSize;
-            public RECT rcWindow;
-            public RECT rcClient;
-            public uint dwStyle;
-            public uint dwExStyle;
-            public uint dwWindowStatus;
-            public uint cxWindowBorders;
-            public uint cyWindowBorders;
-            public ushort atomWindowType;
-            public ushort wCreatorVersion;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct POINT
-        {
-            public int X;
-            public int Y;
-        }
-
-        public struct CaptchaWindow
-        {
-            public int Width;
-            public int Height;
-
-            public POINT MatrixZahlObenLinks;
-            public POINT MatrixZahlObenMitte;
-            public POINT MatrixZahlObenRechts;
-            public POINT MatrixZahlMitteLinks;
-            public POINT MatrixZahlMitteMitte;
-            public POINT MatrixZahlMitteRechts;
-            public POINT MatrixZahlUntenLinks;
-            public POINT MatrixZahlUntenMitte;
-            public POINT MatrixZahlUntenRechts;
-            public POINT MatrixZahlGanzUnten;
-
-            public POINT Absenden;
-        }
-
-        public static string GetActiveWindowTitle()
-        {
-
-            const int nChars = 256;
-            StringBuilder Buff = new StringBuilder(nChars);
-            IntPtr handle = GetForegroundWindow();
-
-            if (GetWindowText(handle, Buff, nChars) > 0)
-            {
-                return Buff.ToString();
-            }
-            return null;
-        }
-
-
-
-
-
-
-
 
         static void Main(string[] args)
         {
             int primaryScreenWidth = Screen.PrimaryScreen.Bounds.Width;
             int primaryScreenHeight = Screen.PrimaryScreen.Bounds.Height;
 
-            CaptchaWindow fixedCaptcha = new CaptchaWindow();
+            User32DLL.CaptchaWindow fixedCaptcha = new User32DLL.CaptchaWindow();
             fixedCaptcha.Width = 374;
             fixedCaptcha.Height = 431;
             fixedCaptcha.MatrixZahlObenLinks.X = 154; fixedCaptcha.MatrixZahlObenLinks.Y = 204;
@@ -209,7 +40,7 @@ namespace captcha
             fixedCaptcha.Absenden.X = 315; fixedCaptcha.Absenden.Y = 400;
 
             Process process = new Process();
-            var activeWindow = new RECT();
+            var activeWindow = new User32DLL.RECT();
             string program = "CCLauncher_Client";
             string programVergleich = "";
             string hallo, hallo2;
@@ -223,9 +54,9 @@ namespace captcha
             try
             {
                 process = Process.GetProcessesByName(program)[0];
-                GetWindowRect(process.MainWindowHandle, out activeWindow);
-                MoveWindow(process.MainWindowHandle, 100, 100, activeWindow.Right - activeWindow.Left, activeWindow.Bottom - activeWindow.Top, true);
-                ShowWindow(process.MainWindowHandle, SW_SHOWMINIMIZED);
+                User32DLL.GetWindowRect(process.MainWindowHandle, out activeWindow);
+                User32DLL.MoveWindow(process.MainWindowHandle, 100, 100, activeWindow.Right - activeWindow.Left, activeWindow.Bottom - activeWindow.Top, true);
+                User32DLL.ShowWindow(process.MainWindowHandle, User32DLL.SW_SHOWMINIMIZED);
             }
             catch (Exception)
             {
@@ -240,7 +71,7 @@ namespace captcha
                     try
                     {
                         process = Process.GetProcessesByName(program)[0];
-                        GetWindowRect(process.MainWindowHandle, out activeWindow);
+                        User32DLL.GetWindowRect(process.MainWindowHandle, out activeWindow);
                         //MoveWindow(process.MainWindowHandle, 100, 100, activeWindow.Right - activeWindow.Left, activeWindow.Bottom - activeWindow.Top, true);
                         //ShowWindow(process.MainWindowHandle, SW_SHOWMINIMIZED);
                         programVergleich = process.ProcessName;
@@ -257,10 +88,10 @@ namespace captcha
                 while (programVergleich != program);                
 
 
-                Console.WriteLine("Scanning for the Captcha-Popup...");
+                Console.WriteLine("Scanning for Captcha-Popup...");
                 Thread.Sleep(500);
                 string popup = "Anwesenheitskontrolle";
-                string currentWindowTitle = GetActiveWindowTitle();
+                string currentWindowTitle = User32DLL.GetActiveWindowTitle();
                 string processName = process.MainWindowTitle;
 
                 if (popup == currentWindowTitle)
@@ -274,17 +105,17 @@ namespace captcha
                         string fileNameSc = "screenshot" + k + ".png";
                         string fileNameCrop = "beschnittenesBild" + k + ".png";
 
-                        ShowWindow(process.MainWindowHandle, SW_RESTORE);
+                        User32DLL.ShowWindow(process.MainWindowHandle, User32DLL.SW_RESTORE);
                         Thread.Sleep(300);
-                        SetForegroundWindow(process.MainWindowHandle);
-                        GetWindowRect(process.MainWindowHandle, out activeWindow);
-                        MoveWindow(process.MainWindowHandle, 100, 100, activeWindow.Right - activeWindow.Left, activeWindow.Bottom - activeWindow.Top, true);
+                        User32DLL.SetForegroundWindow(process.MainWindowHandle);
+                        User32DLL.GetWindowRect(process.MainWindowHandle, out activeWindow);
+                        User32DLL.MoveWindow(process.MainWindowHandle, 100, 100, activeWindow.Right - activeWindow.Left, activeWindow.Bottom - activeWindow.Top, true);
                         //MoveWindow(process.MainWindowHandle, 0, 0, 700, 390, true);
-                        GetWindowRect(process.MainWindowHandle, out activeWindow);
+                        User32DLL.GetWindowRect(process.MainWindowHandle, out activeWindow);
 
                         var image = ScreenCapture.CaptureActiveWindow();
                         Thread.Sleep(300);
-                        GetWindowRect(GetForegroundWindow(), out activeWindow);
+                        User32DLL.GetWindowRect(User32DLL.GetForegroundWindow(), out activeWindow);
                         image.Save(fileLocation + fileNameSc, ImageFormat.Png);
                         Rectangle beschnittenesRechteck = new Rectangle(
                             (10 * (activeWindow.Right - activeWindow.Left)) / fixedCaptcha.Width,               // X
@@ -361,12 +192,12 @@ namespace captcha
                     int j = 0;
 
                     Thread.Sleep(2000);
-                    ShowWindow(process.MainWindowHandle, SW_RESTORE);
-                    SetForegroundWindow(process.MainWindowHandle);
-                    GetWindowRect(process.MainWindowHandle, out activeWindow);
-                    GetWindowRect(GetForegroundWindow(), out activeWindow);
+                    User32DLL.ShowWindow(process.MainWindowHandle, User32DLL.SW_RESTORE);
+                    User32DLL.SetForegroundWindow(process.MainWindowHandle);
+                    User32DLL.GetWindowRect(process.MainWindowHandle, out activeWindow);
+                    User32DLL.GetWindowRect(User32DLL.GetForegroundWindow(), out activeWindow);
 
-                    CaptchaWindow curCaptcha = new CaptchaWindow();
+                    User32DLL.CaptchaWindow curCaptcha = new User32DLL.CaptchaWindow();
                     //Verhältnis in Pixeln zu (0,0)
                     curCaptcha.Width = activeWindow.Right - activeWindow.Left;
                     curCaptcha.Height = activeWindow.Bottom - activeWindow.Top;
@@ -428,50 +259,50 @@ namespace captcha
                             switch (i)
                             {
                                 case 0:
-                                    mouse_event((ARSCH | MouseMove), curCaptcha.MatrixZahlObenLinks.X, curCaptcha.MatrixZahlObenLinks.Y, 0, new System.IntPtr());
+                                    User32DLL.mouse_event((User32DLL.ARSCH | User32DLL.MouseMove), curCaptcha.MatrixZahlObenLinks.X, curCaptcha.MatrixZahlObenLinks.Y, 0, new System.IntPtr());
                                     Console.WriteLine("oben links");
                                     break;
                                 case 1:
-                                    mouse_event((ARSCH | MouseMove), curCaptcha.MatrixZahlObenMitte.X, curCaptcha.MatrixZahlObenMitte.Y, 0, new System.IntPtr());
+                                    User32DLL.mouse_event((User32DLL.ARSCH | User32DLL.MouseMove), curCaptcha.MatrixZahlObenMitte.X, curCaptcha.MatrixZahlObenMitte.Y, 0, new System.IntPtr());
                                     Console.WriteLine("oben mitte");
                                     break;
                                 case 2:
-                                    mouse_event((ARSCH | MouseMove), curCaptcha.MatrixZahlObenRechts.X, curCaptcha.MatrixZahlObenRechts.Y, 0, new System.IntPtr());
+                                    User32DLL.mouse_event((User32DLL.ARSCH | User32DLL.MouseMove), curCaptcha.MatrixZahlObenRechts.X, curCaptcha.MatrixZahlObenRechts.Y, 0, new System.IntPtr());
                                     Console.WriteLine("oben rechts");
                                     break;
                                 case 3:
-                                    mouse_event((ARSCH | MouseMove), curCaptcha.MatrixZahlMitteLinks.X, curCaptcha.MatrixZahlMitteLinks.Y, 0, new System.IntPtr());
+                                    User32DLL.mouse_event((User32DLL.ARSCH | User32DLL.MouseMove), curCaptcha.MatrixZahlMitteLinks.X, curCaptcha.MatrixZahlMitteLinks.Y, 0, new System.IntPtr());
                                     Console.WriteLine("mitte links");
                                     break;
                                 case 4:
-                                    mouse_event((ARSCH | MouseMove), curCaptcha.MatrixZahlMitteMitte.X, curCaptcha.MatrixZahlMitteMitte.Y, 0, new System.IntPtr());
+                                    User32DLL.mouse_event((User32DLL.ARSCH | User32DLL.MouseMove), curCaptcha.MatrixZahlMitteMitte.X, curCaptcha.MatrixZahlMitteMitte.Y, 0, new System.IntPtr());
                                     Console.WriteLine("mitte mitte");
                                     break;
                                 case 5:
-                                    mouse_event((ARSCH | MouseMove), curCaptcha.MatrixZahlMitteRechts.X, curCaptcha.MatrixZahlMitteRechts.Y, 0, new System.IntPtr());
+                                    User32DLL.mouse_event((User32DLL.ARSCH | User32DLL.MouseMove), curCaptcha.MatrixZahlMitteRechts.X, curCaptcha.MatrixZahlMitteRechts.Y, 0, new System.IntPtr());
                                     Console.WriteLine("mitte rechts");
                                     break;
                                 case 6:
-                                    mouse_event((ARSCH | MouseMove), curCaptcha.MatrixZahlUntenLinks.X, curCaptcha.MatrixZahlUntenLinks.Y, 0, new System.IntPtr());
+                                    User32DLL.mouse_event((User32DLL.ARSCH | User32DLL.MouseMove), curCaptcha.MatrixZahlUntenLinks.X, curCaptcha.MatrixZahlUntenLinks.Y, 0, new System.IntPtr());
                                     Console.WriteLine("unten links");
                                     break;
                                 case 7:
-                                    mouse_event((ARSCH | MouseMove), curCaptcha.MatrixZahlUntenMitte.X, curCaptcha.MatrixZahlUntenMitte.Y, 0, new System.IntPtr());
+                                    User32DLL.mouse_event((User32DLL.ARSCH | User32DLL.MouseMove), curCaptcha.MatrixZahlUntenMitte.X, curCaptcha.MatrixZahlUntenMitte.Y, 0, new System.IntPtr());
                                     Console.WriteLine("unten mitte");
                                     break;
                                 case 8:
-                                    mouse_event((ARSCH | MouseMove), curCaptcha.MatrixZahlUntenRechts.X, curCaptcha.MatrixZahlUntenRechts.Y, 0, new System.IntPtr());
+                                    User32DLL.mouse_event((User32DLL.ARSCH | User32DLL.MouseMove), curCaptcha.MatrixZahlUntenRechts.X, curCaptcha.MatrixZahlUntenRechts.Y, 0, new System.IntPtr());
                                     Console.WriteLine("unten rechts");
 
                                     break;
                                 case 9:
-                                    mouse_event((ARSCH | MouseMove), curCaptcha.MatrixZahlGanzUnten.X, curCaptcha.MatrixZahlGanzUnten.Y, 0, new System.IntPtr());
+                                    User32DLL.mouse_event((User32DLL.ARSCH | User32DLL.MouseMove), curCaptcha.MatrixZahlGanzUnten.X, curCaptcha.MatrixZahlGanzUnten.Y, 0, new System.IntPtr());
                                     Console.WriteLine("ganz unten ");
                                     break;
                             }
                             Thread.Sleep(300);
-                            mouse_event(MouseEventLeftDown, 0, 0, 0, new System.IntPtr());
-                            mouse_event(MouseEventLeftUp, 0, 0, 0, new System.IntPtr());
+                            User32DLL.mouse_event(User32DLL.MouseEventLeftDown, 0, 0, 0, new System.IntPtr());
+                            User32DLL.mouse_event(User32DLL.MouseEventLeftUp, 0, 0, 0, new System.IntPtr());
                             Thread.Sleep(200);
 
                             if (j == 3)
@@ -483,10 +314,10 @@ namespace captcha
                         }
                     }
 
-                    mouse_event((ARSCH | MouseMove), curCaptcha.Absenden.X, curCaptcha.Absenden.Y, 0, new System.IntPtr());
+                    User32DLL.mouse_event((User32DLL.ARSCH | User32DLL.MouseMove), curCaptcha.Absenden.X, curCaptcha.Absenden.Y, 0, new System.IntPtr());
                     Thread.Sleep(200);
-                    mouse_event(MouseEventLeftDown, 0, 0, 0, new System.IntPtr());
-                    mouse_event(MouseEventLeftUp, 0, 0, 0, new System.IntPtr());
+                    User32DLL.mouse_event(User32DLL.MouseEventLeftDown, 0, 0, 0, new System.IntPtr());
+                    User32DLL.mouse_event(User32DLL.MouseEventLeftUp, 0, 0, 0, new System.IntPtr());
                     Thread.Sleep(600);
                     //Console.Read();
                 }
