@@ -16,8 +16,6 @@ using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace captcha
 {
-
-
     class Program
     {
         public class ScreenCapture
