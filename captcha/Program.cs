@@ -211,6 +211,7 @@ namespace captcha
             Process process = new Process();
             var activeWindow = new RECT();
             string program = "CCLauncher_Client";
+            string programVergleich = "";
             string hallo, hallo2;
             int k = 0;
 
@@ -232,7 +233,6 @@ namespace captcha
                 Console.Read();
             }
 
-
             for (int m = 0; true; m++)
             {
                 do
@@ -243,16 +243,18 @@ namespace captcha
                         GetWindowRect(process.MainWindowHandle, out activeWindow);
                         //MoveWindow(process.MainWindowHandle, 100, 100, activeWindow.Right - activeWindow.Left, activeWindow.Bottom - activeWindow.Top, true);
                         //ShowWindow(process.MainWindowHandle, SW_SHOWMINIMIZED);
-
+                        programVergleich = process.ProcessName;
                     }
                     catch (Exception)
                     {
                         Console.WriteLine("\n\n\rAn Error occured\n\n\rMake sure CC_Launcher is running!");
                         Console.Read();
+                        programVergleich = "scheisse nicht geklappt";
+                        Console.Clear();
                     }
-
+                    m++;
                 }
-                while (process.ProcessName != program);                
+                while (programVergleich != program);                
 
 
                 Console.WriteLine("Scanning for the Captcha-Popup...");
@@ -343,12 +345,12 @@ namespace captcha
 
                         };
 
-                        hallo2 = "12343214569870";
+                        //hallo2 = "12343214569870";
                         var testDocument = fileLocation + fileNameCrop;
                         var Results = Ocr.Read(testDocument);
-                        //hallo = Results.ToString();
-                        //Console.WriteLine(hallo);
-                        //hallo2 = new string(hallo.Where(Char.IsDigit).ToArray());
+                        hallo = Results.ToString();
+                        Console.WriteLine(hallo);
+                        hallo2 = new string(hallo.Where(Char.IsDigit).ToArray());
                         Console.WriteLine(hallo2);
                         //Console.Read();
 
@@ -483,9 +485,9 @@ namespace captcha
 
                     mouse_event((ARSCH | MouseMove), curCaptcha.Absenden.X, curCaptcha.Absenden.Y, 0, new System.IntPtr());
                     Thread.Sleep(200);
-                    //mouse_event(MouseEventLeftDown, 0, 0, 0, new System.IntPtr());
-                    //mouse_event(MouseEventLeftUp, 0, 0, 0, new System.IntPtr());
-                    //Thread.Sleep(600);
+                    mouse_event(MouseEventLeftDown, 0, 0, 0, new System.IntPtr());
+                    mouse_event(MouseEventLeftUp, 0, 0, 0, new System.IntPtr());
+                    Thread.Sleep(600);
                     //Console.Read();
                 }
 
