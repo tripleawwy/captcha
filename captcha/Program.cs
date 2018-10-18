@@ -192,11 +192,6 @@ namespace captcha
         {
             int primaryScreenWidth = Screen.PrimaryScreen.Bounds.Width;
             int primaryScreenHeight = Screen.PrimaryScreen.Bounds.Height;
-            Console.WriteLine("Initializing Captcha-Solver..");
-            Thread.Sleep(1000);
-            Console.WriteLine("");
-            Console.WriteLine("Captcha-Solver started");
-            Thread.Sleep(500);
 
             CaptchaWindow fixedCaptcha = new CaptchaWindow();
             fixedCaptcha.Width = 374;
@@ -219,6 +214,11 @@ namespace captcha
             string hallo, hallo2;
             int k = 0;
 
+            Console.WriteLine("Initializing Captcha-Solver..");
+            Thread.Sleep(1000);
+            Console.WriteLine("\n\rCaptcha-Solver started");
+            Thread.Sleep(500);
+
             try
             {
                 process = Process.GetProcessesByName(program)[0];
@@ -230,10 +230,31 @@ namespace captcha
             {
                 Console.WriteLine("\n\n\rAn Error occured\n\n\rMake sure CC_Launcher is running!");
                 Console.Read();
-            }                      
+            }
+
 
             for (int m = 0; true; m++)
             {
+                do
+                {
+                    try
+                    {
+                        process = Process.GetProcessesByName(program)[0];
+                        GetWindowRect(process.MainWindowHandle, out activeWindow);
+                        //MoveWindow(process.MainWindowHandle, 100, 100, activeWindow.Right - activeWindow.Left, activeWindow.Bottom - activeWindow.Top, true);
+                        //ShowWindow(process.MainWindowHandle, SW_SHOWMINIMIZED);
+
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("\n\n\rAn Error occured\n\n\rMake sure CC_Launcher is running!");
+                        Console.Read();
+                    }
+
+                }
+                while (process.ProcessName != program);                
+
+
                 Console.WriteLine("Scanning for the Captcha-Popup...");
                 Thread.Sleep(500);
                 string popup = "Anwesenheitskontrolle";
@@ -470,8 +491,10 @@ namespace captcha
 
                 else if (popup != processName)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(2000);
                 }
+
+
             }
         }
     }
