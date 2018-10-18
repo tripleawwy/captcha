@@ -16,8 +16,6 @@ using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace captcha
 {
-    //Test Fork and PullRequest
-
     class Program
     {
         public class ScreenCapture
@@ -160,8 +158,6 @@ namespace captcha
 
         static void Main(string[] args)
         {
-            Thread.Sleep(100);
-
             CaptchaWindow fixedCaptcha = new CaptchaWindow();
             fixedCaptcha.Width = 374;
             fixedCaptcha.Height = 431;
